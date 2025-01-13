@@ -1,0 +1,16 @@
+{
+  "domain": "jookie",
+  "name": "Jookie",
+  "codeowners": [
+    "@ViViDboarder"
+  ],
+  "config_flow": true,
+  "dependencies": ["mqtt"],
+  "documentation": "https://www.home-assistant.io/integrations/jookie",
+  "homekit": {},
+  "iot_class": "local_push",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "version": "0.1.0"
+}
