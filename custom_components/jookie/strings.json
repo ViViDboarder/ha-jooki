@@ -2,8 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "title": "Add MQTT prefix",
+        "description": "After adding the Jookie to the MQTT broker with a prefix attached, you can enter it here.",
         "data": {
-          "host": "[%key:common::config_flow::data::host%]"
+          "bridge_prefix": "Bridge prefix"
+        },
+        "data_description": {
+          "bridge_prefix": "Prefix added to the topics coming from the Jookie via your mqtt bridge config."
         }
       }
     },

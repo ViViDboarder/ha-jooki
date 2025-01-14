@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from homeassistant.components.jookie.coordinator import JookieCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_BRIDGE_PREFIX, DOMAIN
+from .coordinator import JookieCoordinator
 
-_PLATFORMS: list[Platform] = [Platform.MEDIA_PLAYER]
+_PLATFORMS: list[Platform] = [Platform.MEDIA_PLAYER, Platform.SWITCH]
 
 type JookieConfigEntry = ConfigEntry[JookieCoordinator]
 
