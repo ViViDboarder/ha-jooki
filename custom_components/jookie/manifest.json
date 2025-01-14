@@ -1,9 +1,7 @@
 {
   "domain": "jookie",
   "name": "Jookie",
-  "codeowners": [
-    "@ViViDboarder"
-  ],
+  "codeowners": ["@ViViDboarder"],
   "config_flow": true,
   "dependencies": ["mqtt"],
   "documentation": "https://www.home-assistant.io/integrations/jookie",

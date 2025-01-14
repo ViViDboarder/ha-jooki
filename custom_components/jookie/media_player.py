@@ -1,6 +1,6 @@
+"""Media Player for Jooki."""
 import logging
 
-import homeassistant.util.dt as dt_util
 from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
@@ -13,6 +13,7 @@ from homeassistant.components.media_player.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+import homeassistant.util.dt as dt_util
 
 from . import JookieConfigEntry
 from .const import (
@@ -36,6 +37,7 @@ async def async_setup_entry(
     entry: JookieConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up the media player."""
     async_add_entities(
         [
             JookieMediaPlayer(
@@ -133,7 +135,7 @@ class JookieMediaPlayer(CoordinatorEntity[JookieCoordinator], MediaPlayerEntity)
 
             # Source is a playlist, probably maybe
             self._attr_source = self.coordinator.get_state(
-                f"audio.nowPlaying.source"
+                "audio.nowPlaying.source"
             )
 
             duration_ms = self.coordinator.get_state("audio.nowPlaying.duration_ms")

@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, CONF_BRIDGE_PREFIX
+from .const import CONF_BRIDGE_PREFIX, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

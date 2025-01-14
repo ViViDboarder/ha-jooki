@@ -1,24 +1,13 @@
+"""Switches for Jooki."""
 import logging
-from datetime import datetime
 
-import homeassistant.util.dt as dt_util
-from homeassistant.components.switch import (
-    SwitchEntity,
-)
-from homeassistant.components.media_player.const import (
-    MediaPlayerEntityFeature,
-    MediaPlayerState,
-    MediaType,
-)
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import JookieConfigEntry
-from .const import (
-    DOMAIN,
-    TOY_SAFE_TOPIC,
-)
+from .const import DOMAIN, TOY_SAFE_TOPIC
 from .coordinator import JookieCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,6 +18,7 @@ async def async_setup_entry(
     entry: JookieConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up Jooki switches."""
     async_add_entities(
         [
             JookieSwitch(
@@ -55,7 +45,7 @@ class JookieSwitch(CoordinatorEntity[JookieCoordinator], SwitchEntity):
         turn_on: dict,
         turn_off: dict,
     ):
-        """Initialize the media player."""
+        """Initialize the switch."""
         super().__init__(coordinator)
         self._attr_should_poll = False
 

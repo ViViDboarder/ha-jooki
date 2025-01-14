@@ -1,3 +1,4 @@
+"""Data Update Coordinator for Jooki."""
 import asyncio
 import json
 import logging
@@ -31,15 +32,16 @@ def merge_data(old_data: dict[str, Any], new_data: dict[str, Any]) -> tuple[dict
     for key, new_value in new_data.items():
         if isinstance(new_value, dict) and key in old_data and isinstance(old_data[key], dict):
             old_data[key], changed = merge_data(old_data[key], new_value)
-        else:
-            if key not in old_data or old_data[key] != new_value:
-                old_data[key] = new_value
-                changed = True
+        elif key not in old_data or old_data[key] != new_value:
+            old_data[key] = new_value
+            changed = True
 
     return old_data, changed
 
 
 class JookieCoordinator(DataUpdateCoordinator):
+    """Data Update Coordinator for Jooki."""
+
     def __init__(self, hass: HomeAssistant, bridge_prefix: str):
         """Initialize the Jookie coordinator."""
         super().__init__(
@@ -62,22 +64,19 @@ class JookieCoordinator(DataUpdateCoordinator):
     async def async_publish(self, topic_suffix: str, payload: dict | str | None = None):
         """Publish a message to the MQTT broker with the bridge prefix."""
         full_topic = f"{self._bridge_prefix}/{topic_suffix}"
-        try:
-            if payload is None:
-                payload = "{}"
-            elif isinstance(payload, dict):
-                payload = json.dumps(payload)
-            _LOGGER.debug("Publishing payload to topic %s: %s", full_topic, payload)
-            await mqtt.async_publish(self._hass, full_topic, payload)
-        except Exception as e:
-            _LOGGER.error("Error publishing to topic %s: %s", full_topic, e)
+        if payload is None:
+            payload = "{}"
+        elif isinstance(payload, dict):
+            payload = json.dumps(payload)
+        _LOGGER.debug("Publishing payload to topic %s: %s", full_topic, payload)
+        await mqtt.async_publish(self._hass, full_topic, payload)
 
     async def _mqtt_message_received(self, msg):
         """Handle incoming MQTT messages."""
         topic = msg.topic
         payload = msg.payload
 
-        # _LOGGER.debug("recieved message on topic %s: %s", topic, payload)
+        # _LOGGER.debug("received message on topic %s: %s", topic, payload)
 
         if topic.endswith(PONG_TOPIC):
             _LOGGER.debug("Received PONG from device.")
@@ -98,7 +97,7 @@ class JookieCoordinator(DataUpdateCoordinator):
 
 
     def get_state(self, path: str, default: Any | None = None) -> Any:
-        """Gets state value from nested dictionaries using dot notation."""
+        """Get the state value from nested dictionaries using dot notation."""
         keys = path.split(".")
         value = self.data
         for key in keys:
@@ -118,8 +117,8 @@ class JookieCoordinator(DataUpdateCoordinator):
 
     async def _start_ping_loop(self):
         """Start a periodic ping loop."""
-        while True:
-            try:
+        try:
+            while True:
                 await self._send_ping()
 
                 self._missed_pongs += 1
@@ -137,10 +136,8 @@ class JookieCoordinator(DataUpdateCoordinator):
                     _LOGGER.warning("No state updates received; requesting state.")
                     await self.async_publish(GET_STATE_TOPIC)
 
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                _LOGGER.error("Error in ping loop: %s", e)
+        except asyncio.CancelledError:
+            return
 
     async def async_start(self):
         """Start the coordinator."""
