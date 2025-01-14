@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.util.dt as dt_util
 
-from . import JookieConfigEntry
+from . import JookiConfigEntry
 from .const import (
     DOMAIN,
     NEXT_TOPIC,
@@ -27,31 +27,31 @@ from .const import (
     SEEK_TOPIC,
     VOL_TOPIC,
 )
-from .coordinator import JookieCoordinator
+from .coordinator import JookiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: JookieConfigEntry,
+    entry: JookiConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the media player."""
     async_add_entities(
         [
-            JookieMediaPlayer(
-                "Jookie Media Player",
+            JookiMediaPlayer(
+                "Jooki Media Player",
                 hass.data[DOMAIN][entry.entry_id],
             ),
         ],
     )
 
 
-class JookieMediaPlayer(CoordinatorEntity[JookieCoordinator], MediaPlayerEntity):
-    """Representation of a Jookie media player device."""
+class JookiMediaPlayer(CoordinatorEntity[JookiCoordinator], MediaPlayerEntity):
+    """Representation of a Jooki media player device."""
 
-    def __init__(self, name: str, coordinator: JookieCoordinator):
+    def __init__(self, name: str, coordinator: JookiCoordinator):
         """Initialize the media player."""
         super().__init__(coordinator)
         self._attr_should_poll = False

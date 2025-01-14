@@ -1,6 +1,6 @@
-"""Constants for the Jookie integration."""
+"""Constants for the Jooki integration."""
 
-DOMAIN = "jookie"
+DOMAIN = "jooki"
 CONF_BRIDGE_PREFIX: str = "mqtt_bridge_prefix"
 
 # Topics for interaction

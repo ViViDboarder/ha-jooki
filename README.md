@@ -1,3 +1,3 @@
-# ha-jookie
+# ha-jooki
 
-Jookie Media Player custom component for Home Assistant
+Jooki Media Player custom component for Home Assistant

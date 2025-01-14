@@ -1,4 +1,4 @@
-"""Config flow for the Jookie integration."""
+"""Config flow for the Jooki integration."""
 
 from __future__ import annotations
 
@@ -37,11 +37,11 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         raise CannotConnect
 
     # Return info that you want to store in the config entry.
-    return {"title": "My Jookie"}
+    return {"title": "My Jooki"}
 
 
 class ConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Jookie."""
+    """Handle a config flow for Jooki."""
 
     VERSION = 1
 

@@ -39,15 +39,15 @@ def merge_data(old_data: dict[str, Any], new_data: dict[str, Any]) -> tuple[dict
     return old_data, changed
 
 
-class JookieCoordinator(DataUpdateCoordinator):
+class JookiCoordinator(DataUpdateCoordinator):
     """Data Update Coordinator for Jooki."""
 
     def __init__(self, hass: HomeAssistant, bridge_prefix: str):
-        """Initialize the Jookie coordinator."""
+        """Initialize the Jooki coordinator."""
         super().__init__(
             hass,
             _LOGGER,
-            name="Jookie Media Player Coordinator",
+            name="Jooki Media Player Coordinator",
         )
         self._hass = hass
         self._ping_task = None
@@ -141,7 +141,7 @@ class JookieCoordinator(DataUpdateCoordinator):
 
     async def async_start(self):
         """Start the coordinator."""
-        _LOGGER.info("Starting Jookie Coordinator.")
+        _LOGGER.info("Starting Jooki Coordinator.")
         await mqtt.async_subscribe(
             self._hass,
             f"{self._bridge_prefix}/{PONG_TOPIC}",
@@ -158,7 +158,7 @@ class JookieCoordinator(DataUpdateCoordinator):
 
     async def async_stop(self):
         """Stop the coordinator."""
-        _LOGGER.info("Stopping Jookie Coordinator.")
+        _LOGGER.info("Stopping Jooki Coordinator.")
         if self._ping_task:
             self._ping_task.cancel()
             self._ping_task = None

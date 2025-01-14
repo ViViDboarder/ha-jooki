@@ -1,4 +1,4 @@
-"""The Jookie integration."""
+"""The Jooki integration."""
 
 from __future__ import annotations
 
@@ -7,19 +7,19 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_BRIDGE_PREFIX, DOMAIN
-from .coordinator import JookieCoordinator
+from .coordinator import JookiCoordinator
 
 _PLATFORMS: list[Platform] = [Platform.MEDIA_PLAYER, Platform.SWITCH]
 
-type JookieConfigEntry = ConfigEntry[JookieCoordinator]
+type JookiConfigEntry = ConfigEntry[JookiCoordinator]
 
 
 # TODO Update entry annotation
-async def async_setup_entry(hass: HomeAssistant, entry: JookieConfigEntry) -> bool:
-    """Set up Jookie from a config entry."""
+async def async_setup_entry(hass: HomeAssistant, entry: JookiConfigEntry) -> bool:
+    """Set up Jooki from a config entry."""
 
     bridge_prefix = entry.data[CONF_BRIDGE_PREFIX]
-    coordinator = JookieCoordinator(hass, bridge_prefix)
+    coordinator = JookiCoordinator(hass, bridge_prefix)
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
@@ -31,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: JookieConfigEntry) -> bo
 
 
 # TODO Update entry annotation
-async def async_unload_entry(hass: HomeAssistant, entry: JookieConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: JookiConfigEntry) -> bool:
     """Unload a config entry."""
     coordinator = hass.data[DOMAIN].pop(entry.entry_id, None)
 

@@ -6,23 +6,23 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import JookieConfigEntry
+from . import JookiConfigEntry
 from .const import DOMAIN, TOY_SAFE_TOPIC
-from .coordinator import JookieCoordinator
+from .coordinator import JookiCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: JookieConfigEntry,
+    entry: JookiConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Jooki switches."""
     async_add_entities(
         [
-            JookieSwitch(
-                "Jookie Media Player Toy Safe",
+            JookiSwitch(
+                "Jooki Media Player Toy Safe",
                 hass.data[DOMAIN][entry.entry_id],
                 state_attr="device.toy_safe",
                 write_topic=TOY_SAFE_TOPIC,
@@ -33,13 +33,13 @@ async def async_setup_entry(
     )
 
 
-class JookieSwitch(CoordinatorEntity[JookieCoordinator], SwitchEntity):
-    """Representation of a Jookie switch device."""
+class JookiSwitch(CoordinatorEntity[JookiCoordinator], SwitchEntity):
+    """Representation of a Jooki switch device."""
 
     def __init__(
         self,
         name: str,
-        coordinator: JookieCoordinator,
+        coordinator: JookiCoordinator,
         state_attr: str,
         write_topic: str,
         turn_on: dict,

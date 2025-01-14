@@ -1,10 +1,10 @@
 {
-  "domain": "jookie",
-  "name": "Jookie",
+  "domain": "jooki",
+  "name": "Jooki",
   "codeowners": ["@ViViDboarder"],
   "config_flow": true,
   "dependencies": ["mqtt"],
-  "documentation": "https://www.home-assistant.io/integrations/jookie",
+  "documentation": "https://www.home-assistant.io/integrations/jooki",
   "homekit": {},
   "iot_class": "local_push",
   "requirements": [],
