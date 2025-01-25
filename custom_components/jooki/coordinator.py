@@ -1,4 +1,5 @@
 """Data Update Coordinator for Jooki."""
+
 import asyncio
 import json
 import logging
@@ -25,12 +26,18 @@ def parse_state(payload):
         return {}
 
 
-def merge_data(old_data: dict[str, Any], new_data: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+def merge_data(
+    old_data: dict[str, Any], new_data: dict[str, Any]
+) -> tuple[dict[str, Any], bool]:
     """Merge data dictionaries down and track changes."""
     changed = False
 
     for key, new_value in new_data.items():
-        if isinstance(new_value, dict) and key in old_data and isinstance(old_data[key], dict):
+        if (
+            isinstance(new_value, dict)
+            and key in old_data
+            and isinstance(old_data[key], dict)
+        ):
             old_data[key], changed = merge_data(old_data[key], new_value)
         elif key not in old_data or old_data[key] != new_value:
             old_data[key] = new_value
@@ -53,7 +60,7 @@ class JookiCoordinator(DataUpdateCoordinator):
         self._ping_task = None
         self._missed_pongs = 0
         self._device_available = True
-        self.data = {}
+        self.data: dict[str, Any] = {}
         self._bridge_prefix = bridge_prefix.rstrip("/").lstrip("/")
 
     @property
@@ -82,10 +89,16 @@ class JookiCoordinator(DataUpdateCoordinator):
             _LOGGER.debug("Received PONG from device.")
             self._missed_pongs = 0
             self._device_available = True
+            self.async_set_updated_data(self.data)
             return
 
         if topic.endswith(STATE_TOPIC):
             _LOGGER.debug("Received state update from device: %s", payload)
+            # TODO: Dont notify updates for every timestamp change
+            # can probably merge values as usual but
+            # ignore if the payload is only an updated
+            # timestamp with consistent playing state
+            # maybe a resync every X or something
             try:
                 message_data = parse_state(payload)
                 self.data, changed = merge_data(self.data, message_data)
@@ -95,19 +108,16 @@ class JookiCoordinator(DataUpdateCoordinator):
             except json.JSONDecodeError as e:
                 _LOGGER.error("Error decoding MQTT message: %s", e)
 
-
-    def get_state(self, path: str, default: Any | None = None) -> Any:
+    def get_state(self, path: str, default: Any | None = None) -> Any | None:
         """Get the state value from nested dictionaries using dot notation."""
         keys = path.split(".")
-        value = self.data
+        value: Any = self.data
         for key in keys:
             if isinstance(value, dict) and key in value:
                 value = value[key]
             else:
                 value = default
                 break
-
-        # _LOGGER.debug("Getting %s: %s", path, value)
 
         return value
 
@@ -128,6 +138,7 @@ class JookiCoordinator(DataUpdateCoordinator):
                         "Device is unavailable after missing multiple pongs."
                     )
                     self._device_available = False
+                    self.async_set_updated_data(self.data)
 
                 await asyncio.sleep(PING_INTERVAL)
 

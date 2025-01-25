@@ -84,8 +84,8 @@ class JookiMediaPlayer(CoordinatorEntity[JookiCoordinator], MediaPlayerEntity):
         _LOGGER.debug("Available %s: %s", self._attr_name, self._attr_available)
 
         playback_state = self.coordinator.get_state(
-            "audio.playback.state", "idle"
-        ).upper()
+            "audio.playback.state", "IDLE"
+        ).upper() if self._attr_available else "OFF"
         _LOGGER.debug(
             "Playback state value for %s: %s", self._attr_name, playback_state
         )
@@ -95,7 +95,8 @@ class JookiMediaPlayer(CoordinatorEntity[JookiCoordinator], MediaPlayerEntity):
             "PAUSED": MediaPlayerState.PAUSED,
             "ENDED": MediaPlayerState.IDLE,
             # Unknown
-            "idle": MediaPlayerState.IDLE,
+            "IDLE": MediaPlayerState.IDLE,
+            "OFF": MediaPlayerState.OFF,
         }.get(playback_state, MediaPlayerState.IDLE)
 
         _LOGGER.debug(
