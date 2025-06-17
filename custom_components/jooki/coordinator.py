@@ -83,8 +83,6 @@ class JookiCoordinator(DataUpdateCoordinator):
         topic = msg.topic
         payload = msg.payload
 
-        # _LOGGER.debug("received message on topic %s: %s", topic, payload)
-
         if topic.endswith(PONG_TOPIC):
             _LOGGER.debug("Received PONG from device.")
             self._missed_pongs = 0
@@ -133,7 +131,7 @@ class JookiCoordinator(DataUpdateCoordinator):
 
                 self._missed_pongs += 1
 
-                if self._missed_pongs > 2:
+                if self._missed_pongs > 2 and self._device_available:
                     _LOGGER.warning(
                         "Device is unavailable after missing multiple pongs."
                     )
@@ -143,8 +141,14 @@ class JookiCoordinator(DataUpdateCoordinator):
                 await asyncio.sleep(PING_INTERVAL)
 
                 # If no state or no db present, ask for a refresh the full device state
-                if not self.data or not self.get_state("db"):
-                    _LOGGER.warning("No state updates received; requesting state.")
+                if (
+                    self._device_available
+                    and not (
+                        self.data
+                        and self.get_state("db")
+                    )
+                ):
+                    _LOGGER.debug("No state updates received; requesting state.")
                     await self.async_publish(GET_STATE_TOPIC)
 
         except asyncio.CancelledError:
