@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_BRIDGE_PREFIX, DOMAIN
+from .const import CONF_ADDRESS, DOMAIN
 from .coordinator import JookiCoordinator
 
 _PLATFORMS: list[Platform] = [Platform.MEDIA_PLAYER, Platform.SWITCH]
@@ -18,7 +18,7 @@ type JookiConfigEntry = ConfigEntry[JookiCoordinator]
 async def async_setup_entry(hass: HomeAssistant, entry: JookiConfigEntry) -> bool:
     """Set up Jooki from a config entry."""
 
-    bridge_prefix = entry.data[CONF_BRIDGE_PREFIX]
+    bridge_prefix = entry.data[CONF_ADDRESS]
     coordinator = JookiCoordinator(hass, bridge_prefix)
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator

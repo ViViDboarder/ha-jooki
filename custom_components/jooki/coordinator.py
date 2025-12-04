@@ -5,11 +5,12 @@ import json
 import logging
 from typing import Any, cast
 
-from homeassistant.components import mqtt
+import paho.mqtt.client as mqtt
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import GET_STATE_TOPIC, PING_TOPIC, PONG_TOPIC, STATE_TOPIC
+from .const import GET_STATE_TOPIC, MQTT_PORT, PING_TOPIC, PONG_TOPIC, STATE_TOPIC
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,48 +56,57 @@ def merge_data(
 class JookiCoordinator(DataUpdateCoordinator):
     """Data Update Coordinator for Jooki."""
 
-    def __init__(self, hass: HomeAssistant, bridge_prefix: str):
+    def __init__(self, hass: HomeAssistant, ip_address: str):
         """Initialize the Jooki coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="Jooki Media Player Coordinator",
         )
-        self._hass = hass
+        self._hass: HomeAssistant = hass
+        self._ip_address: str = ip_address
+        self._client: mqtt.Client = mqtt.Client(client_id=f"homeassistant_jooki_{ip_address}", clean_session=True)
         self._ping_task = None
-        self._missed_pongs = 0
-        self._device_available = True
+        self._missed_pongs: int = 0
+        self._device_available: bool = False
         self.data: dict[str, Any] = {}
-        self._bridge_prefix = bridge_prefix.rstrip("/").lstrip("/")
 
     @property
     def available(self):
         """Return if the device is considered available."""
         return self._device_available
 
-    async def async_publish(self, topic_suffix: str, payload: dict | str | None = None):
-        """Publish a message to the MQTT broker with the bridge prefix."""
-        full_topic = f"{self._bridge_prefix}/{topic_suffix}"
-        if payload is None:
-            payload = "{}"
-        elif isinstance(payload, dict):
-            payload = json.dumps(payload)
-        _LOGGER.debug("Publishing payload to topic %s: %s", full_topic, payload)
-        await mqtt.async_publish(self._hass, full_topic, payload)
+    async def async_connect(self):
+        """Connect to the MQTT broker."""
+        result = await self._hass.async_add_executor_job(self._client.connect, self._ip_address, MQTT_PORT)
+        if result != 0:
+            _LOGGER.error("Failed to connect to Jooki MQTT broker at %s:%s", self._ip_address, MQTT_PORT)
+            self._device_available = False
+        else:
+            _LOGGER.info("Connected to Jooki MQTT broker at %s:%s", self._ip_address, MQTT_PORT)
 
-    async def _mqtt_message_received(self, msg):
+    async def async_publish(self, topic: str, payload: JSON | str | None = "{}"):
+        """Publish a message to the MQTT broker with the bridge prefix."""
+        if isinstance(payload, dict):
+            payload = json.dumps(payload)
+
+        _LOGGER.debug("Publishing payload to topic %s: %s", topic, payload)
+
+        _ = self._client.publish(topic, payload)
+
+    async def _mqtt_message_received(self, _client: mqtt.Client, _userdata: Any, msg: mqtt.MQTTMessage):
         """Handle incoming MQTT messages."""
         topic = msg.topic
         payload = msg.payload
 
-        if topic.endswith(PONG_TOPIC):
+        if topic == PONG_TOPIC:
             _LOGGER.debug("Received PONG from device.")
             self._missed_pongs = 0
             self._device_available = True
             self.async_set_updated_data(self.data)
             return
 
-        if topic.endswith(STATE_TOPIC):
+        if topic == STATE_TOPIC:
             _LOGGER.debug("Received state update from device: %s", payload)
             try:
                 message_data = parse_state(payload)
@@ -129,6 +139,8 @@ class JookiCoordinator(DataUpdateCoordinator):
         """Start a periodic ping loop."""
         try:
             while True:
+                # TODO: When stopped, I can also stop worying about pinging or
+                # delay pings and listen again on `/j/nfc/input/tag`
                 await self._send_ping()
 
                 self._missed_pongs += 1
@@ -159,16 +171,11 @@ class JookiCoordinator(DataUpdateCoordinator):
     async def async_start(self):
         """Start the coordinator."""
         _LOGGER.info("Starting Jooki Coordinator.")
-        await mqtt.async_subscribe(
-            self._hass,
-            f"{self._bridge_prefix}/{PONG_TOPIC}",
-            self._mqtt_message_received,
-        )
-        await mqtt.async_subscribe(
-            self._hass,
-            f"{self._bridge_prefix}/{STATE_TOPIC}",
-            self._mqtt_message_received,
-        )
+        await self.async_connect()
+
+        self._client.on_message = self._mqtt_message_received
+        _ = self._client.subscribe(PONG_TOPIC)
+        _ = self._client.subscribe(STATE_TOPIC)
 
         # Start the ping loop
         self._ping_task = self._hass.loop.create_task(self._start_ping_loop())

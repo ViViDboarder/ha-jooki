@@ -1,7 +1,9 @@
 """Constants for the Jooki integration."""
 
 DOMAIN = "jooki"
-CONF_BRIDGE_PREFIX: str = "mqtt_bridge_prefix"
+CONF_ADDRESS: str = "mqtt_bridge_prefix"
+
+MQTT_PORT = 1883
 
 # Topics for interaction
 PING_TOPIC = "/j/debug/input/ping"
