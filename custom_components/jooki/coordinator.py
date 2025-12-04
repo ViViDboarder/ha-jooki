@@ -3,7 +3,7 @@
 import asyncio
 import json
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components import mqtt
 from homeassistant.core import HomeAssistant
@@ -13,11 +13,13 @@ from .const import GET_STATE_TOPIC, PING_TOPIC, PONG_TOPIC, STATE_TOPIC
 
 _LOGGER = logging.getLogger(__name__)
 
+JSON = dict[str, Any]
+
 
 PING_INTERVAL = 30  # Seconds
 
 
-def parse_state(payload):
+def parse_state(payload: bytes) -> JSON:
     """Parse the state payload and return a structured dictionary."""
     try:
         return json.loads(payload)
@@ -27,10 +29,10 @@ def parse_state(payload):
 
 
 def merge_data(
-    old_data: dict[str, Any], new_data: dict[str, Any]
-) -> tuple[dict[str, Any], bool]:
+    old_data: JSON, new_data: JSON, path: str = ""
+) -> tuple[JSON, set[str]]:
     """Merge data dictionaries down and track changes."""
-    changed = False
+    changed: set[str] = set()
 
     for key, new_value in new_data.items():
         if (
@@ -38,10 +40,14 @@ def merge_data(
             and key in old_data
             and isinstance(old_data[key], dict)
         ):
-            old_data[key], changed = merge_data(old_data[key], new_value)
+            new_value = cast(JSON, new_value)
+            old_value = cast(JSON, old_data[key])
+
+            old_data[key], re_changed = merge_data(old_value, new_value, path=f"{path}.{key}" if path else key)
+            changed.update(re_changed)
         elif key not in old_data or old_data[key] != new_value:
             old_data[key] = new_value
-            changed = True
+            changed.add(f"{path}.{key}" if path else key)
 
     return old_data, changed
 
@@ -92,15 +98,11 @@ class JookiCoordinator(DataUpdateCoordinator):
 
         if topic.endswith(STATE_TOPIC):
             _LOGGER.debug("Received state update from device: %s", payload)
-            # TODO: Dont notify updates for every timestamp change
-            # can probably merge values as usual but
-            # ignore if the payload is only an updated
-            # timestamp with consistent playing state
-            # maybe a resync every X or something
             try:
                 message_data = parse_state(payload)
                 self.data, changed = merge_data(self.data, message_data)
-                if changed:
+                # Notify only if there are meaningful changes
+                if changed and changed != {"audio.playback.position_ms"}:
                     self.async_set_updated_data(self.data)
 
             except json.JSONDecodeError as e:
